@@ -152,7 +152,6 @@
     <Content Include="Scripts\jquery.dynatable.js" />
     <Content Include="UnusualRequests.cshtml" />
     <Content Include="Index.cshtml" />
-    <Content Include="Readme.md" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
