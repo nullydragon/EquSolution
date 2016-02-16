@@ -51,7 +51,7 @@
 			//Delete a record
 			$(document).on('click', '.delete', function () {
 				var id = $(this).attr("value");
-				var record = $(this).parent();
+				var record = $(this).parent().parent();
 
 				$.ajax({
 					url: '/api/UnusualRequest/' + id,
