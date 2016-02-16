@@ -1,0 +1,188 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Client Requests</title>
+
+	<link rel="stylesheet" href="~/Css/style.css" />
+
+	<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+
+	<script type="text/javascript">
+		$(document).ready(function () {
+			//Add new record
+			$(document).on('click', '#btn-add', function () {
+				ClearEditor();
+				$('.editor').fadeIn();
+			});
+
+			//Edit existing record
+			$(document).on('click', '.edit', function () {
+				var id = $(this).attr("value");
+				var req = LoadRequest(id);
+			});
+
+			//Populate UI
+			function LoadRequest(id) {
+				$.ajax({
+					url: '/api/UnusualRequest/' + id,
+					type: 'GET',
+					dataType: 'json',
+					success: function (o) {
+
+						$('#txtId').val(o.RequestId);
+						$('#txtClient').val(o.FullName);
+						$('#txtRequest').val(o.QuestionOrRequest);
+						$('#txtDate').val(o.Occurrence);
+
+						$('.editor').fadeIn();
+					},
+					error: function (x, y, z) {
+						alert(x + '\n' + y + '\n' + z);
+					}
+				});
+			}
+
+			//Delete a record
+			$(document).on('click', '.delete', function () {
+				var id = $(this).attr("value");
+				var record = $(this).parent();
+
+				$.ajax({
+					url: '/api/UnusualRequest/' + id,
+					type: 'DELETE',
+					dataType: 'json',
+					success: function (o) {						
+						record.fadeOut();
+					},
+					error: function (x, y, z) {
+						alert(x + '\n' + y + '\n' + z);
+					}
+				});
+				
+			});
+
+			//Save a new or existing record
+			$(document).on('click', '.save', function () {
+				var id = $('#txtId').val();
+				var client = $('#txtClient').val();
+				var request = $('#txtRequest').val();
+				var date = $('#txtDate').val();
+
+				Save(id, client, request, date);
+			});
+
+			$(document).on('click', '.cancel', function () {
+				ClearEditor();
+				$('.editor').fadeOut();
+			});
+
+			function Save(id, client, request, date) {
+				if (id != "") {
+					//edit
+					$.ajax({
+						url: '/api/UnusualRequest/' + id,
+						type: 'PUT',
+						dataType: 'text',//just returns a flat 200 on success, if we flag data as json and get nothing back jquery will think we had an error
+						data: {
+							RequestId: id,
+							FullName: client,
+							QuestionOrRequest: request,
+							Occurrence: date
+						},
+						success: function (o) {
+							ClearEditor();
+							loadAll();//lazy reload, idealy just get new records data
+							$('.editor').fadeOut();
+						},
+						error: function (x, y, z) {
+							alert(x + '\n' + y + '\n' + z);
+						}
+					});
+				} else {
+					//add
+					$.ajax({
+						url: '/api/UnusualRequest/' + id,
+						type: 'POST',
+						dataType: 'text',//just returns a flat 200 on success, if we flag data as json and get nothing back jquery will think we had an error
+						data: {
+							FullName: client,
+							QuestionOrRequest: request,
+							Occurrence: date
+						},
+						success: function (o) {
+							ClearEditor();
+							loadAll();//lazy reload, idealy just get new records data
+							$('.editor').fadeOut();
+						},
+						error: function (x, y, z) {
+							alert(x + '\n' + y + '\n' + z);
+						}
+					});
+				}
+			}
+
+			function ClearEditor() {
+				$('#txtId').val("");
+				$('#txtClient').val("");
+				$('#txtRequest').val("");
+				$('#txtDate').val("");
+			}
+
+			//make our get request to the web api 
+			function loadAll(){
+				jQuery.support.cors = true;
+				$.ajax({
+					url: '/api/UnusualRequest',
+					type: 'GET',
+					dataType: 'json',
+					success: function (clients) {
+						$('#clients').html('');
+						$.each(clients, function (index, client) {
+							$('#clients').append('<li>[' + client.RequestId + '] <span class="name">' + client.FullName + '</span><span class="req">Request: ' + client.QuestionOrRequest + '</span><span class="date">At: ' + client.Occurrence + '<button class="edit" value="' + client.RequestId + '">Edit</button> <button class="delete" value="' + client.RequestId + '">Delete</button></span></li>');
+						});
+ 
+					},
+					error: function (x, y, z) {
+						alert(x + '\n' + y + '\n' + z);
+					}
+				});
+			}
+
+			loadAll();
+		});
+	</script>
+</head>
+<body>
+    <div class="display">
+		<h3>All Illogical and Unusual Requests</h3>
+		<ul id="clients"></ul>
+		<hr />
+		<button id="btn-add">Add</button>
+
+    </div>
+
+	<div class="editor">
+		<label for="txtId">Id</label>
+		<input type="text" id="txtId" value="" readonly="readonly" />
+
+		<label for="txtClient">Client</label>
+		<input type="text" id="txtClient" value="" />
+
+		<label for="txtRequest">Request</label>
+		<input type="text" id="txtRequest" value="" />
+
+		<label for="txtDate">Date</label>
+		<input type="text" id="txtDate" value="" />
+
+		<button class="cancel">Cancel</button>
+		<button class="save">Save</button>
+	</div>
+	<!-- you could really snaz this form and editor up with various plugins and such, but we are keeping it simple in the demo -->
+</body>
+</html>
